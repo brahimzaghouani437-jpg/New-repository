@@ -1,0 +1,221 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// ==================== STRUCTURES ====================
+
+typedef struct {
+    int jour;
+    int mois;
+    int annee;
+} Date;
+
+// Noeud Client
+typedef struct ClientNode {
+    int id;
+    char nom[50];
+    Date dateNaissance;
+    struct ClientNode* suivant;
+} ClientNode;
+
+// Noeud Facture
+typedef struct FactureNode {
+    int idFacture;
+    int idClient;
+    float montant;
+    float tva;
+    Date dateFacture;
+    struct FactureNode* suivant;
+} FactureNode;
+
+// Tetes des listes
+ClientNode*  listeClients  = NULL;
+FactureNode* listeFactures = NULL;
+
+// ==================== DATE ====================
+
+Date saisirDate() {
+    Date d;
+    printf("  Jour   : "); scanf("%d", &d.jour);
+    printf("  Mois   : "); scanf("%d", &d.mois);
+    printf("  Annee  : "); scanf("%d", &d.annee);
+    return d;
+}
+void afficherDate(Date d) {
+    printf("%02d/%02d/%d", d.jour, d.mois, d.annee);
+}
+
+// ==================== CLIENTS ====================
+
+// Retourne un pointeur vers le noeud client dont l'id correspond, ou NULL
+ClientNode* chercherClient(int id) {
+    ClientNode* courant = listeClients;
+    while (courant != NULL) {
+        if (courant->id == id)
+            return courant;
+        courant = courant->suivant;
+    }
+    return NULL;
+}
+void ajouterClient() {
+    ClientNode* nouveau = (ClientNode*)malloc(sizeof(ClientNode));
+    if (nouveau == NULL) {
+        printf("Erreur d'allocation memoire !\n");
+        return;
+    }
+    printf("ID Client : ");
+    scanf("%d", &nouveau->id);
+
+    // Verifier unicite de l'ID
+    if (chercherClient(nouveau->id) != NULL) {
+        printf("Un client avec cet ID existe deja !\n");
+        free(nouveau);
+        return;
+    }
+    printf("Nom Client : ");
+    scanf(" %[^\n]", nouveau->nom);
+
+    printf("Date de naissance :\n");
+    nouveau->dateNaissance = saisirDate();
+
+    // Insertion en tete
+    nouveau->suivant = listeClients;
+    listeClients = nouveau;
+
+    printf("Client ajoute avec succes !\n");
+}
+void afficherClients() {
+    if (listeClients == NULL) {
+        printf("Aucun client enregistre.\n");
+        return;
+    }
+    printf("\n--- Liste des Clients ---\n");
+    ClientNode* courant = listeClients;
+    while (courant != NULL) {
+        printf("ID: %d | Nom: %-30s | Naissance: ",
+               courant->id, courant->nom);
+        afficherDate(courant->dateNaissance);
+        printf("\n");
+        courant = courant->suivant;
+    }
+}
+
+// ==================== FACTURES ====================
+
+void ajouterFacture() {
+    FactureNode* nouveau = (FactureNode*)malloc(sizeof(FactureNode));
+    if (nouveau == NULL) {
+        printf("Erreur d'allocation memoire !\n");
+        return;
+    }
+
+    printf("ID Facture : ");
+    scanf("%d", &nouveau->idFacture);
+
+    printf("ID Client  : ");
+    scanf("%d", &nouveau->idClient);
+
+    if (chercherClient(nouveau->idClient) == NULL) {
+        printf("Client inexistant !\n");
+        free(nouveau);
+        return;
+    }
+    printf("Montant    : ");
+    scanf("%f", &nouveau->montant);
+
+    nouveau->tva = nouveau->montant * 0.19f;
+
+    printf("Date de facture :\n");
+    nouveau->dateFacture = saisirDate();
+
+    // Insertion en tete
+    nouveau->suivant = listeFactures;
+    listeFactures = nouveau;
+
+    printf("Facture ajoutee avec succes !\n");
+}
+void afficherFactures() {
+    if (listeFactures == NULL) {
+        printf("Aucune facture enregistree.\n");
+        return;
+    }
+    printf("\n--- Liste des Factures ---\n");
+    FactureNode* courant = listeFactures;
+    while (courant != NULL) {
+        printf("Facture ID: %d | Client ID: %d | Montant: %8.2f DT | TVA: %7.2f DT | Date: ",
+               courant->idFacture,
+               courant->idClient,
+               courant->montant,
+               courant->tva);
+        afficherDate(courant->dateFacture);
+        printf("\n");
+        courant = courant->suivant;
+    }
+}
+float calculTotal() {
+    float total = 0;
+    FactureNode* courant = listeFactures;
+    while (courant != NULL) {
+        total += courant->montant;
+        courant = courant->suivant;
+    }
+    return total;
+}
+
+// ==================== MAIN ====================
+
+int main() {
+    int choix;
+
+    do {
+        printf(" MENU \n");
+        printf("  1. Ajouter Client\n");
+        printf("  2. Afficher Clients\n");
+        printf("  3. Chercher Client\n");
+        printf("  4. Ajouter Facture\n");
+        printf("  5. Afficher Factures\n");
+        printf("  6. Total Factures\n");
+        printf("  0. Quitter\n");
+        printf("Choix : ");
+        scanf("%d", &choix);
+
+        switch (choix) {
+            case 1:
+                ajouterClient();
+                break;
+            case 2:
+                afficherClients();
+                break;
+            case 3: {
+                int id;
+                printf("Entrer ID client : ");
+                scanf("%d", &id);
+                ClientNode* c = chercherClient(id);
+                if (c != NULL)
+                    printf("Client trouve : %s (naissance : %02d/%02d/%d)\n",
+                           c->nom, c->dateNaissance.jour,
+                           c->dateNaissance.mois, c->dateNaissance.annee);
+                else
+                    printf("Client non trouve !\n");
+                break;
+            }
+            case 4:
+                ajouterFacture();
+                break;
+            case 5:
+                afficherFactures();
+                break;
+            case 6:
+                printf("Total des factures : %.2f DT\n", calculTotal());
+                break;
+            case 0:
+                printf("Au revoir !\n");
+                break;
+
+            default:
+                printf("Choix invalide !\n");
+        }
+    } while (choix != 0);
+    return 0;
+}
+

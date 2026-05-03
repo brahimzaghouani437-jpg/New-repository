@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// ==================== STRUCTURES ====================
 
 typedef struct {
     int jour;
@@ -10,7 +9,6 @@ typedef struct {
     int annee;
 } Date;
 
-// Noeud Client
 typedef struct ClientNode {
     int id;
     char nom[50];
@@ -18,7 +16,6 @@ typedef struct ClientNode {
     struct ClientNode* suivant;
 } ClientNode;
 
-// Noeud Facture
 typedef struct FactureNode {
     int idFacture;
     int idClient;
@@ -28,11 +25,8 @@ typedef struct FactureNode {
     struct FactureNode* suivant;
 } FactureNode;
 
-// Tetes des listes
 ClientNode*  listeClients  = NULL;
 FactureNode* listeFactures = NULL;
-
-// ==================== DATE ====================
 
 Date saisirDate() {
     Date d;
@@ -45,9 +39,7 @@ void afficherDate(Date d) {
     printf("%02d/%02d/%d", d.jour, d.mois, d.annee);
 }
 
-// ==================== CLIENTS ====================
 
-// Retourne un pointeur vers le noeud client dont l'id correspond, ou NULL
 ClientNode* chercherClient(int id) {
     ClientNode* courant = listeClients;
     while (courant != NULL) {
@@ -66,7 +58,7 @@ void ajouterClient() {
     printf("ID Client : ");
     scanf("%d", &nouveau->id);
 
-    // Verifier unicite de l'ID
+
     if (chercherClient(nouveau->id) != NULL) {
         printf("Un client avec cet ID existe deja !\n");
         free(nouveau);
@@ -78,7 +70,6 @@ void ajouterClient() {
     printf("Date de naissance :\n");
     nouveau->dateNaissance = saisirDate();
 
-    // Insertion en tete
     nouveau->suivant = listeClients;
     listeClients = nouveau;
 
@@ -100,7 +91,6 @@ void afficherClients() {
     }
 }
 
-// ==================== FACTURES ====================
 
 void ajouterFacture() {
     FactureNode* nouveau = (FactureNode*)malloc(sizeof(FactureNode));
@@ -128,7 +118,7 @@ void ajouterFacture() {
     printf("Date de facture :\n");
     nouveau->dateFacture = saisirDate();
 
-    // Insertion en tete
+
     nouveau->suivant = listeFactures;
     listeFactures = nouveau;
 
@@ -162,7 +152,6 @@ float calculTotal() {
     return total;
 }
 
-// ==================== MAIN ====================
 
 int main() {
     int choix;
